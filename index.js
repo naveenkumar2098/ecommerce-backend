@@ -23,11 +23,15 @@ app.use(
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const productRoutes = require('./routes/productRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const issueRoutes = require('./routes/issueRoutes');
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/issues', issueRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {

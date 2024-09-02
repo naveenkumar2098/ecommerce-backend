@@ -65,7 +65,7 @@ exports.getProduct = async (req, res) => {
             logger.warn(`Get product failed - Product not found: ${id}`);
             return res.status(404).json({ message: 'Product not found' });
         }
-        logger.info(`Fetched product with id: ${id}`)
+        logger.info(`Fetched product with id: ${id}`);
         res.status(200).json(product);
     } catch (error) {
         logger.error(`Error encountered while fetching product details`, { error });
