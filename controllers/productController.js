@@ -44,7 +44,7 @@ exports.getAllProducts = async (req, res) => {
 
     try {
         // Get all products from database
-        const products = await Product.find();
+        const products = await Product.find({ isActive: true });
         logger.info(`Fetched all products: ${products.length}`);
         res.status(200).json(products);
     } catch (error) {
@@ -56,7 +56,7 @@ exports.getAllProducts = async (req, res) => {
 /**
  * 
  * @desc    Get a product
- * @route   POST api/products/:id
+ * @route   GET api/products/:id
  * @access  Public
  */
 exports.getProduct = async (req, res) => {
@@ -65,7 +65,7 @@ exports.getProduct = async (req, res) => {
     try {
         // Find product
         const product = await Product.findById(id);
-        if (!product) {
+        if (!product || !product.isActive) {
             logger.warn(`Get product failed - Product not found: ${id}`);
             return res.status(404).json({ message: 'Product not found' });
         }

@@ -4,6 +4,7 @@ const { createOrder, getAllOrdersForUser, getOrder, updateOrder, deleteOrder } =
 const { isAuthenticated } = require('../middlewares/auth');
 const { authorizeRoles } = require('../middlewares/role');
 
+const validateObjectId = require('../utils/validateObjectId');
 const router = express.Router();
 
 // Routes list with http methods
@@ -17,15 +18,16 @@ router.post(
   ],
   createOrder
 );
-router.get('/:id/allOrders', isAuthenticated, authorizeRoles('customer', 'admin'), getAllOrdersForUser);
-router.get('/:id', isAuthenticated, authorizeRoles('customer', 'admin'), getOrder);
+router.get('/:id/allOrders', isAuthenticated, authorizeRoles('customer', 'admin'), validateObjectId(), getAllOrdersForUser);
+router.get('/:id', isAuthenticated, authorizeRoles('customer', 'admin'), validateObjectId(), getOrder);
 router.put(
   '/:id',
   isAuthenticated,
   authorizeRoles('admin'),
+  validateObjectId(),
   [check('status', 'Invalid status').isIn(['processing', 'shipped', 'delivered', 'cancelled'])],
   updateOrder
 );
-router.delete('/:id', isAuthenticated, authorizeRoles('admin'), deleteOrder);
+router.delete('/:id', isAuthenticated, authorizeRoles('admin'), validateObjectId(), deleteOrder);
 
 module.exports = router;

@@ -68,7 +68,7 @@ exports.updateUser = async (req, res) => {
  * @access  Admin
  */
 exports.deleteUser = async (req, res) => {
-  logger.info(`Delete user controller callled!`);
+  logger.info(`Delete user controller called!`);
   const { id } = req.params;
   try {
     // Find user and delete

@@ -4,6 +4,7 @@ const { createIssue, getAllIssues, getIssue, updateIssue, deleteIssue } = requir
 const { isAuthenticated } = require('../middlewares/auth');
 const { authorizeRoles } = require('../middlewares/role');
 
+const validateObjectId = require('../utils/validateObjectId');
 const router = express.Router();
 
 // Routes list with http methods
@@ -18,15 +19,16 @@ router.post(
   ],
   createIssue
 );
-router.get('/:id/allIssues', isAuthenticated, authorizeRoles('support', 'admin', 'customer'), getAllIssues);
-router.get('/:id', isAuthenticated, authorizeRoles('support', 'admin', 'customer'), getIssue);
+router.get('/:id/allIssues', isAuthenticated, authorizeRoles('support', 'admin', 'customer'), validateObjectId(), getAllIssues);
+router.get('/:id', isAuthenticated, authorizeRoles('support', 'admin', 'customer'), validateObjectId(), getIssue);
 router.put(
   '/:id',
   isAuthenticated,
   authorizeRoles('support', 'admin'),
+  validateObjectId(),
   [check('status', 'Invalid status').isIn(['open', 'in-progress', 'resolved', 'closed'])],
   updateIssue
 );
-router.delete('/:id', isAuthenticated, authorizeRoles('admin'), deleteIssue);
+router.delete('/:id', isAuthenticated, authorizeRoles('admin'), validateObjectId(), deleteIssue);
 
 module.exports = router;

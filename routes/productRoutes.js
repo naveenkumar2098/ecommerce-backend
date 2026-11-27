@@ -4,6 +4,7 @@ const { createProduct, getAllProducts, getProduct, updateProduct, deleteProduct,
 const { isAuthenticated } = require('../middlewares/auth');
 const { authorizeRoles } = require('../middlewares/role');
 
+const validateObjectId = require('../utils/validateObjectId');
 const router = express.Router();
 
 // Routes list with methods
@@ -21,11 +22,12 @@ router.post(
     createProduct
 );
 router.get('/', getAllProducts);
-router.post('/:id', getProduct);
+router.get('/:id', validateObjectId(), getProduct);
 router.put(
     '/:id',
     isAuthenticated,
     authorizeRoles('admin', 'supplier'),
+    validateObjectId(),
     [
         check('name', 'Name is required').optional().not().isEmpty(),
         check('description', 'Description is required').optional().not().isEmpty(),
@@ -39,12 +41,14 @@ router.delete(
     '/:id',
     isAuthenticated,
     authorizeRoles('admin', 'supplier'),
+    validateObjectId(),
     deleteProduct
 );
 router.patch(
     '/:id/toggle',
     isAuthenticated,
     authorizeRoles('admin', 'supplier'),
+    validateObjectId(),
     toggleProductStatus
 );
 
