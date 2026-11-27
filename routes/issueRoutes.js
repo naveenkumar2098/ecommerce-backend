@@ -1,6 +1,6 @@
 const express = require('express');
 const { check } = require('express-validator');
-const { createIssue, getAllIssues, getIssue, updateIssue, deleteIssue } = require('../controllers/issueController');
+const { createIssue, getAllIssues, getIssue, updateIssue, deleteIssue, getIssueQueue } = require('../controllers/issueController');
 const { isAuthenticated } = require('../middlewares/auth');
 const { authorizeRoles } = require('../middlewares/role');
 
@@ -18,6 +18,13 @@ router.post(
     check('orderId', 'A valid order ID is required').isMongoId(),
   ],
   createIssue
+);
+router.get(
+  '/',
+  isAuthenticated,
+  authorizeRoles('support', 'admin'),
+  [check('status', 'Invalid status').optional().isIn(['open', 'in-progress', 'resolved', 'closed'])],
+  getIssueQueue
 );
 router.get('/:id/allIssues', isAuthenticated, authorizeRoles('support', 'admin', 'customer'), validateObjectId(), getAllIssues);
 router.get('/:id', isAuthenticated, authorizeRoles('support', 'admin', 'customer'), validateObjectId(), getIssue);

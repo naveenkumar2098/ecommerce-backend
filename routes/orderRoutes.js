@@ -1,6 +1,6 @@
 const express = require('express');
 const { check } = require('express-validator');
-const { createOrder, getAllOrdersForUser, getOrder, updateOrder, deleteOrder } = require('../controllers/orderController');
+const { createOrder, getAllOrdersForUser, getOrder, updateOrder, deleteOrder, getAllOrders } = require('../controllers/orderController');
 const { isAuthenticated } = require('../middlewares/auth');
 const { authorizeRoles } = require('../middlewares/role');
 
@@ -18,6 +18,7 @@ router.post(
   ],
   createOrder
 );
+router.get('/', isAuthenticated, authorizeRoles('admin'), getAllOrders);
 router.get('/:id/allOrders', isAuthenticated, authorizeRoles('customer', 'admin'), validateObjectId(), getAllOrdersForUser);
 router.get('/:id', isAuthenticated, authorizeRoles('customer', 'admin'), validateObjectId(), getOrder);
 router.put(

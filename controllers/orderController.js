@@ -223,3 +223,22 @@ exports.deleteOrder = async (req, res) => {
       res.status(500).json({ message: 'Server error' });
     }
 };
+
+/**
+ * 
+ * @desc    List all orders, newest first
+ * @route   GET api/orders
+ * @access  Admin
+ */
+exports.getAllOrders = async (req, res) => {
+    logger.info(`Get all orders (admin) controller called!`);
+
+    try {
+      const orders = await Order.find().sort({ createdAt: -1 }).populate('user', 'name email');
+      logger.info(`Fetched all orders: ${orders.length}`);
+      res.status(200).json(orders);
+    } catch (error) {
+      logger.error(`Error encountered during fetching all orders`, { error });
+      res.status(500).json({ message: 'Server error' });
+    }
+};

@@ -1,6 +1,6 @@
 const express = require('express');
 const { check } = require("express-validator");
-const { createProduct, getAllProducts, getProduct, updateProduct, deleteProduct, toggleProductStatus } = require('../controllers/productController');
+const { createProduct, getAllProducts, getProduct, updateProduct, deleteProduct, toggleProductStatus, getManagedProducts } = require('../controllers/productController');
 const { isAuthenticated } = require('../middlewares/auth');
 const { authorizeRoles } = require('../middlewares/role');
 
@@ -22,6 +22,7 @@ router.post(
     createProduct
 );
 router.get('/', getAllProducts);
+router.get('/manage', isAuthenticated, authorizeRoles('admin', 'supplier'), getManagedProducts);
 router.get('/:id', validateObjectId(), getProduct);
 router.put(
     '/:id',

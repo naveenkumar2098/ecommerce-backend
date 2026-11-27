@@ -124,7 +124,7 @@ exports.forgotPassword = async (req, res) => {
 
     // Create reset url and message for forgot password mail
     const baseUrl = process.env.CLIENT_URL || `http://localhost:${process.env.PORT || 8000}`;
-    const resetUrl = `${baseUrl}/api/auth/resetpassword/${resetToken}`;
+    const resetUrl = `${baseUrl}/reset-password/${resetToken}`;
     const message = `You are receiving this email because you requested a password reset. Please visit the below link to change password: \n\n ${resetUrl}`;
 
     try {

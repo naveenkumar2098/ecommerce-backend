@@ -152,3 +152,28 @@ exports.deleteIssue = async (req, res) => {
       res.status(500).json({ message: 'Server error' });
   }
 };
+
+/**
+ * 
+ * @desc    List every issue, newest first, optionally filtered by ?status=
+ * @route   GET api/issues
+ * @access  Support, Admin
+ */
+exports.getIssueQueue = async (req, res) => {
+    logger.info(`Get issue queue controller called!`);
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
+
+    try {
+      const filter = req.query.status ? { status: req.query.status } : {};
+      const issues = await Issue.find(filter).sort({ createdAt: -1 }).populate('userId', 'name email');
+      logger.info(`Fetched issue queue: ${issues.length}`);
+      res.status(200).json(issues);
+    } catch (error) {
+      logger.error(`Error encountered during fetching issue queue`, { error });
+      res.status(500).json({ message: 'Server error' });
+    }
+};
