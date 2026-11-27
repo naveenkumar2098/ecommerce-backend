@@ -15,9 +15,24 @@ router.post(
   ],
   register
 );
-router.post('/login', login);
-router.post('/forgotpassword', forgotPassword);
-router.put('/resetpassword/:token', resetPassword);
+router.post(
+  '/login',
+  [
+    check('email', 'Please include a valid email').isEmail(),
+    check('password', 'Password is required').notEmpty(),
+  ],
+  login
+);
+router.post(
+  '/forgotpassword',
+  [check('email', 'Please include a valid email').isEmail()],
+  forgotPassword
+);
+router.put(
+  '/resetpassword/:token',
+  [check('password', 'Password must be 6 or more characters').isLength({ min: 6 })],
+  resetPassword
+);
 router.get('/me', isAuthenticated, getCurrentUser);
 router.post('/logout', isAuthenticated, logout);
 
