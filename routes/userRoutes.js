@@ -15,6 +15,7 @@ router.put(
   [
     check('name', 'Name is required').optional().not().isEmpty(),
     check('email', 'Please include a valid email').optional().isEmail(),
+    check('role', 'Invalid role').optional().isIn(['admin', 'supplier', 'customer', 'support']),
   ],
   updateUser
 );

@@ -20,7 +20,7 @@ exports.register = async (req, res) => {
     return res.status(422).json({ errors: errors.array() });
   }
 
-  const { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
   try {
     
     // Check if user already exists
@@ -31,7 +31,7 @@ exports.register = async (req, res) => {
     }
 
     // Create new user
-    const user = await User.create({ name, email, password, role });
+    const user = await User.create({ name, email, password });
     logger.info(`New user registered: ${user.id}`);
 
     // Generate JWT token

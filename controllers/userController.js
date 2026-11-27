@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const { validationResult } = require('express-validator');
 const logger = require('../utils/logger');
+const pick = require('../utils/pick');
 
 /**
  * 
@@ -41,7 +42,8 @@ exports.updateUser = async (req, res) => {
   const { id } = req.params;
   try {
     // Find user and update
-    const user = await User.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+    const updates = pick(req.body, ['name', 'email', 'role']);
+    const user = await User.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
     if (!user) {
       logger.warn(`Update user failed - User not found: ${id}`);
       return res.status(404).json({ message: 'User not found' });
@@ -49,6 +51,10 @@ exports.updateUser = async (req, res) => {
     logger.info(`Update user details successful: ${id}`);
     res.status(200).json(user);
   } catch (error) {
+    if (error.code === 11000) {
+      logger.warn(`Update user failed - Email already in use`);
+      return res.status(400).json({ message: 'Email already in use' });
+    }
     logger.error(`Error encountered during updating user details`, { error });
     res.status(500).json({ message: 'Server error', error });
   }
@@ -98,14 +104,19 @@ exports.updateOwnProfile = async (req, res) => {
 
   try {
     // Find user and update
-    const user = await User.findByIdAndUpdate(req.user._id, req.body, { new: true, runValidators: true });
+    const updates = pick(req.body, ['name', 'email']);
+    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true, runValidators: true });
     if (!user) {
-      logger.warn(`Update own profile failed - User not found: ${user._id}`);
+      logger.warn(`Update own profile failed - User not found: ${req.user._id}`);
       return res.status(404).json({ message: 'User not found' });
     }
     logger.info(`Profile updated successfully for user: ${user._id}`);
     res.status(200).json(user);
   } catch (error) {
+    if (error.code === 11000) {
+      logger.warn(`Update own profile failed - Email already in use`);
+      return res.status(400).json({ message: 'Email already in use' });
+    }
     logger.error(`Error encountered during updating own profile`, { error });
     res.status(500).json({ message: 'Server error', error });
   }
