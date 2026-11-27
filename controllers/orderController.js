@@ -1,6 +1,7 @@
 const Order = require('../models/Order');
 const { validationResult } = require('express-validator');
 const logger = require('../utils/logger');
+const { isOwnerOrRole } = require('../utils/access');
 
 /**
  * 
@@ -39,6 +40,10 @@ exports.getAllOrdersForUser = async (req, res) => {
     logger.info(`Get all orders controller called!`);
 
     const { id } = req.params;
+    if (!isOwnerOrRole(req, id, 'admin')) {
+      logger.warn(`Get all orders denied - user ${req.user._id} requested orders of ${id}`);
+      return res.status(403).json({ message: 'Access denied' });
+    }
     try {
       // Find all orders
       const orders = await Order.find({ user: id });
@@ -67,6 +72,11 @@ exports.getOrder = async (req, res) => {
         logger.warn(`Get order failed - Order not found: ${id}`);
         return res.status(404).json({ message: 'Order not found' });
       }
+      if (!isOwnerOrRole(req, order.user, 'admin')) {
+        // Respond as not found so the existence of the order is not revealed
+        logger.warn(`Get order denied - user ${req.user._id} requested order ${id}`);
+        return res.status(404).json({ message: 'Order not found' });
+      }
       logger.info(`Fetched order with id: ${id}`);
       res.status(200).json(order);
     } catch (error) {
@@ -88,7 +98,7 @@ exports.updateOrder = async (req, res) => {
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
       logger.warn(`Validations failed during order updation`, { errors: errors.array() });
-      return res.send(422).json({ errors: errors.array() });
+      return res.status(422).json({ errors: errors.array() });
     }
 
     const { id } = req.params;

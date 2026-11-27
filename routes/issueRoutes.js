@@ -14,13 +14,19 @@ router.post(
   [
     check('title', 'Title is required').not().isEmpty(),
     check('description', 'Description is required').not().isEmpty(),
-    check('orderId', 'Order ID is required').not().isEmpty(),
+    check('orderId', 'A valid order ID is required').isMongoId(),
   ],
   createIssue
 );
 router.get('/:id/allIssues', isAuthenticated, authorizeRoles('support', 'admin', 'customer'), getAllIssues);
 router.get('/:id', isAuthenticated, authorizeRoles('support', 'admin', 'customer'), getIssue);
-router.put('/:id', isAuthenticated, authorizeRoles('support', 'admin'), updateIssue);
+router.put(
+  '/:id',
+  isAuthenticated,
+  authorizeRoles('support', 'admin'),
+  [check('status', 'Invalid status').isIn(['open', 'in-progress', 'resolved', 'closed'])],
+  updateIssue
+);
 router.delete('/:id', isAuthenticated, authorizeRoles('admin'), deleteIssue);
 
 module.exports = router;
