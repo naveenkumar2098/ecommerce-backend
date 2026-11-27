@@ -11,14 +11,21 @@ router.post(
   '/',
   isAuthenticated,
   [
-    check('products', 'Products are required').isArray(),
-    check('totalPrice', 'Total price is required').isNumeric(),
+    check('products', 'Products are required').isArray({ min: 1 }),
+    check('products.*.product', 'A valid product ID is required').isMongoId(),
+    check('products.*.quantity', 'Quantity must be an integer >= 1').isInt({ min: 1 }),
   ],
   createOrder
 );
 router.get('/:id/allOrders', isAuthenticated, authorizeRoles('customer', 'admin'), getAllOrdersForUser);
 router.get('/:id', isAuthenticated, authorizeRoles('customer', 'admin'), getOrder);
-router.put('/:id', isAuthenticated, authorizeRoles('admin'), updateOrder);
+router.put(
+  '/:id',
+  isAuthenticated,
+  authorizeRoles('admin'),
+  [check('status', 'Invalid status').isIn(['processing', 'shipped', 'delivered', 'cancelled'])],
+  updateOrder
+);
 router.delete('/:id', isAuthenticated, authorizeRoles('admin'), deleteOrder);
 
 module.exports = router;
