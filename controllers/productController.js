@@ -1,6 +1,10 @@
 const Product = require('../models/Product');
 const { validationResult } = require('express-validator');
 const logger = require('../utils/logger');
+const pick = require('../utils/pick');
+const { isOwnerOrRole } = require('../utils/access');
+
+const PRODUCT_FIELDS = ['name', 'description', 'price', 'stock', 'category'];
 
 /**
  * 
@@ -15,17 +19,17 @@ exports.createProduct = async (req, res) => {
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
         logger.warn(`Validations failed during product creation`, { errors: errors.array() });
-        return res.send(422).json({ errors: errors.array() });
+        return res.status(422).json({ errors: errors.array() });
     }
 
     try {
         // Create product
-        const product = await Product.create({ ...req.body, createdBy: req.user._id });
+        const product = await Product.create({ ...pick(req.body, PRODUCT_FIELDS), createdBy: req.user._id });
         logger.info(`New product created: ${product.id}`);
         res.status(201).json(product);
     } catch (error) {
         logger.error(`Error encountered during product creation`, { error });
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -40,19 +44,19 @@ exports.getAllProducts = async (req, res) => {
 
     try {
         // Get all products from database
-        const products = await Product.find();
+        const products = await Product.find({ isActive: true });
         logger.info(`Fetched all products: ${products.length}`);
         res.status(200).json(products);
     } catch (error) {
         logger.error(`Error encountered during fetching products list`, { error });
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
 /**
  * 
  * @desc    Get a product
- * @route   POST api/products/:id
+ * @route   GET api/products/:id
  * @access  Public
  */
 exports.getProduct = async (req, res) => {
@@ -61,7 +65,7 @@ exports.getProduct = async (req, res) => {
     try {
         // Find product
         const product = await Product.findById(id);
-        if (!product) {
+        if (!product || !product.isActive) {
             logger.warn(`Get product failed - Product not found: ${id}`);
             return res.status(404).json({ message: 'Product not found' });
         }
@@ -69,7 +73,7 @@ exports.getProduct = async (req, res) => {
         res.status(200).json(product);
     } catch (error) {
         logger.error(`Error encountered while fetching product details`, { error });
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -87,22 +91,27 @@ exports.updateProduct = async (req, res) => {
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
         logger.warn(`Validations failed during product updation`, { errors: errors.array() });
-        return res.send(422).json({ errors: errors.array() });
+        return res.status(422).json({ errors: errors.array() });
     }
 
     const { id } = req.params;
     // Update product details
     try {
-        const product = await Product.findOneAndUpdate({ _id: id }, req.body, {new: true, runValidators: true});
-        if(!product) {
+        const existing = await Product.findById(id);
+        if(!existing) {
             logger.warn(`Update product failed - Product not found: ${id}`);
             return res.status(404).json({ message: 'Product not found' });
         }
+        if (!isOwnerOrRole(req, existing.createdBy, 'admin')) {
+            logger.warn(`Update product denied - user ${req.user._id} is not the owner of ${id}`);
+            return res.status(403).json({ message: 'Access denied' });
+        }
+        const product = await Product.findByIdAndUpdate(id, pick(req.body, PRODUCT_FIELDS), {new: true, runValidators: true});
         logger.info(`Updated product successfully: ${id}`);
         res.status(200).json(product);
     } catch (error) {
         logger.error(`Error encountered while updating product`, { error });
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -119,16 +128,21 @@ exports.deleteProduct = async (req, res) => {
     // Delete product
     const { id } = req.params;
     try {
-        const product = await Product.findByIdAndDelete(id);
+        const product = await Product.findById(id);
         if(!product) {
             logger.warn(`Delete product failed - Product not found: ${id}`);
             return res.status(404).json({ message: 'Product not found' });
         }
+        if (!isOwnerOrRole(req, product.createdBy, 'admin')) {
+            logger.warn(`Delete product denied - user ${req.user._id} is not the owner of ${id}`);
+            return res.status(403).json({ message: 'Access denied' });
+        }
+        await product.deleteOne();
         logger.info(`Deleted product successfully: ${id}`);
         res.status(200).json({ message: 'Product deleted successfully' });
     } catch (error) {
         logger.error(`Error encountered while deleting product`, { error });
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -150,12 +164,16 @@ exports.toggleProductStatus = async (req, res) => {
             logger.warn(`Toggle product failed - Product not found: ${id}`);
             return res.status(404).json({ message: 'Product not found' });
         }
+        if (!isOwnerOrRole(req, product.createdBy, 'admin')) {
+            logger.warn(`Toggle product denied - user ${req.user._id} is not the owner of ${id}`);
+            return res.status(403).json({ message: 'Access denied' });
+        }
         // Update status
         product.isActive = !product.isActive;
         await product.save();
         res.status(200).json(product);
     } catch (error) {
         logger.error(`Error encountered while toggling product status`, { error });
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error' });
     }
 };

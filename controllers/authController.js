@@ -5,6 +5,8 @@ const sendEmail = require('../utils/sendEmail');
 const { validationResult } = require('express-validator');
 const logger = require('../utils/logger');
 
+const GENERIC_FORGOT_MESSAGE = 'If that email exists, a reset link has been sent';
+
 /**
  * 
  * @desc    Register a new user
@@ -20,7 +22,7 @@ exports.register = async (req, res) => {
     return res.status(422).json({ errors: errors.array() });
   }
 
-  const { name, email, password, role } = req.body;
+  const { name, email, password } = req.body;
   try {
     
     // Check if user already exists
@@ -31,7 +33,7 @@ exports.register = async (req, res) => {
     }
 
     // Create new user
-    const user = await User.create({ name, email, password, role });
+    const user = await User.create({ name, email, password });
     logger.info(`New user registered: ${user.id}`);
 
     // Generate JWT token
@@ -42,7 +44,7 @@ exports.register = async (req, res) => {
     res.status(201).json({ token });
   } catch (error) {
     logger.error(`Error encountered during user registration`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -55,6 +57,13 @@ exports.register = async (req, res) => {
  */
 exports.login = async (req, res) => {
   logger.info(`Login controller called!`);
+  // Validation check
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    logger.warn(`Validations failed during login`, { errors: errors.array() });
+    return res.status(422).json({ errors: errors.array() });
+  }
+
   const { email, password } = req.body;
   try {
     // Check for email and password
@@ -79,7 +88,7 @@ exports.login = async (req, res) => {
     res.status(200).json({ token });
   } catch (error) {
     logger.error(`Error encountered during user login`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -92,13 +101,21 @@ exports.login = async (req, res) => {
  */
 exports.forgotPassword = async (req, res) => {
   logger.info(`Forgot password controller called!`);
+  // Validation check
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    logger.warn(`Validations failed during forgot password`, { errors: errors.array() });
+    return res.status(422).json({ errors: errors.array() });
+  }
+
   const { email } = req.body;
   try {
     // Find user
     const user = await User.findOne({ email });
     if (!user) {
-      logger.warn(`Forgot password failed - User not found: ${email}`);
-      return res.status(404).json({ message: 'User not found' });
+      // Respond identically to avoid revealing which emails are registered
+      logger.warn(`Forgot password requested for unknown email: ${email}`);
+      return res.status(200).json({ message: GENERIC_FORGOT_MESSAGE });
     }
 
     // Generate reset token
@@ -106,7 +123,8 @@ exports.forgotPassword = async (req, res) => {
     await user.save();
 
     // Create reset url and message for forgot password mail
-    const resetUrl = `${req.protocol}://${req.get('host')}/api/auth/resetpassword/${resetToken}`;
+    const baseUrl = process.env.CLIENT_URL || `http://localhost:${process.env.PORT || 8000}`;
+    const resetUrl = `${baseUrl}/api/auth/resetpassword/${resetToken}`;
     const message = `You are receiving this email because you requested a password reset. Please visit the below link to change password: \n\n ${resetUrl}`;
 
     try {
@@ -117,17 +135,17 @@ exports.forgotPassword = async (req, res) => {
         message,
       });
       logger.info(`Password reset mail sent to: ${email}`);
-      res.status(200).json({ message: 'Email sent' });
+      res.status(200).json({ message: GENERIC_FORGOT_MESSAGE });
     } catch (error) {
       logger.error(`Error encountered during mail sending process`, { error });
       user.resetPasswordToken = undefined;
       user.resetPasswordExpire = undefined;
       await user.save();
-      return res.status(500).json({ message: 'Email could not be sent' });
+      return res.status(200).json({ message: GENERIC_FORGOT_MESSAGE });
     }
   } catch (error) {
     logger.error(`Error encountered during forgot password process`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -140,6 +158,13 @@ exports.forgotPassword = async (req, res) => {
  */
 exports.resetPassword = async (req, res) => {
   logger.info(`Reset password controller called!`);
+  // Validation check
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    logger.warn(`Validations failed during reset password`, { errors: errors.array() });
+    return res.status(422).json({ errors: errors.array() });
+  }
+
   const resetPasswordToken = crypto
     .createHash('sha256')
     .update(req.params.token)
@@ -171,7 +196,7 @@ exports.resetPassword = async (req, res) => {
     res.status(200).json({ token });
   } catch (error) {
     logger.error(`Error encountered during password reset`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -190,7 +215,7 @@ exports.getCurrentUser = async (req, res) => {
     res.status(200).json(user);
   } catch (error) {
     logger.error(`Error encountered during fetching current logged in user`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

@@ -1,6 +1,9 @@
 const Issue = require('../models/Issue');
 const { validationResult } = require('express-validator');
+const Order = require('../models/Order');
 const logger = require('../utils/logger');
+const pick = require('../utils/pick');
+const { isOwnerOrRole } = require('../utils/access');
 
 /**
  * 
@@ -19,13 +22,22 @@ exports.createIssue = async (req, res) => {
     }
 
     try {
+      const data = pick(req.body, ['title', 'description', 'orderId']);
+
+      // The order must belong to the requesting user
+      const order = await Order.findById(data.orderId);
+      if (!order || String(order.user) !== String(req.user._id)) {
+        logger.warn(`Create issue failed - Order not found for user: ${data.orderId}`);
+        return res.status(404).json({ message: 'Order not found' });
+      }
+
       // Create issue
-      const issue = await Issue.create({ ...req.body, userId: req.user._id });
+      const issue = await Issue.create({ ...data, userId: req.user._id });
       logger.info(`New Issue created: ${issue.id}`);
       res.status(201).json(issue);
     } catch (error) {
       logger.error(`Error encountered during issue creation`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -39,6 +51,10 @@ exports.getAllIssues = async (req, res) => {
     logger.info(`Get all issues controller called!`);
 
     const { id } = req.params;
+    if (!isOwnerOrRole(req, id, 'admin', 'support')) {
+      logger.warn(`Get all issues denied - user ${req.user._id} requested issues of ${id}`);
+      return res.status(403).json({ message: 'Access denied' });
+    }
     try {
       // Find all issues for the user
       const issues = await Issue.find({ userId: id });
@@ -46,7 +62,7 @@ exports.getAllIssues = async (req, res) => {
       res.status(200).json(issues);
     } catch (error) {
       logger.error(`Error encountered during fetching issues list`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -67,11 +83,16 @@ exports.getIssue = async (req, res) => {
         logger.warn(`Get issue failed - Issue not found: ${id}`);
         return res.status(404).json({ message: 'Issue not found' });
       }
+      if (!isOwnerOrRole(req, issue.userId, 'admin', 'support')) {
+        // Respond as not found so the existence of the issue is not revealed
+        logger.warn(`Get issue denied - user ${req.user._id} requested issue ${id}`);
+        return res.status(404).json({ message: 'Issue not found' });
+      }
       logger.info(`Fetched issue with id: ${id}`);
       res.status(200).json(issue);
     } catch (error) {
       logger.error(`Error encountered while fetching issue details`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -82,19 +103,19 @@ exports.getIssue = async (req, res) => {
  * @access  Admin, Support
  */
 exports.updateIssue = async (req, res) => {
-    logger.info(`Update order controller called!`);
+    logger.info(`Update issue controller called!`);
 
     // Validation check
     const errors = validationResult(req);
     if(!errors.isEmpty()) {
       logger.warn(`Validations failed during issue updation`, { errors: errors.array() });
-      return res.send(422).json({ errors: errors.array() });
+      return res.status(422).json({ errors: errors.array() });
     }
 
     const { id } = req.params;
     try {
       // Find issue and update
-      const issue = await Issue.findByIdAndUpdate(id, req.body, { new: true, runValidators: true });
+      const issue = await Issue.findByIdAndUpdate(id, pick(req.body, ['status']), { new: true, runValidators: true });
       if (!issue) {
         logger.warn(`Update issue failed - Issue not found: ${id}`);
         return res.status(404).json({ message: 'Issue not found' });
@@ -103,7 +124,7 @@ exports.updateIssue = async (req, res) => {
       res.status(200).json(issue);
     } catch (error) {
       logger.error(`Error encountered while updating issue`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -114,7 +135,7 @@ exports.updateIssue = async (req, res) => {
  * @access  Admin, Support
  */
 exports.deleteIssue = async (req, res) => {
-    logger.info(`Delete order controller called!`);
+    logger.info(`Delete issue controller called!`);
 
     const { id } = req.params;
     try {
@@ -124,10 +145,10 @@ exports.deleteIssue = async (req, res) => {
         logger.warn(`Delete issue failed - Issue not found: ${id}`);
         return res.status(404).json({ message: 'Issue not found' });
       }
-      logger.info(`Deleted order successfully: ${id}`);
+      logger.info(`Deleted issue successfully: ${id}`);
       res.status(200).json({ message: 'Issue deleted successfully' });
     } catch (error) {
       logger.error(`Error encountered while deleting issue`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
   }
 };
