@@ -177,3 +177,23 @@ exports.toggleProductStatus = async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+
+/**
+ * 
+ * @desc    List products for management, including inactive ones
+ * @route   GET api/products/manage
+ * @access  Admin (all products), Supplier (own products)
+ */
+exports.getManagedProducts = async (req, res) => {
+    logger.info(`Get managed products controller called!`);
+
+    try {
+        const filter = req.user.role === 'admin' ? {} : { createdBy: req.user._id };
+        const products = await Product.find(filter).sort({ createdAt: -1 });
+        logger.info(`Fetched managed products: ${products.length}`);
+        res.status(200).json(products);
+    } catch (error) {
+        logger.error(`Error encountered during fetching managed products`, { error });
+        res.status(500).json({ message: 'Server error' });
+    }
+};

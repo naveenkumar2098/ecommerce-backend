@@ -59,7 +59,7 @@ describe('forgot/reset password', () => {
     expect(res.status).toBe(200);
     expect(sendEmail).toHaveBeenCalledTimes(1);
     const { message } = sendEmail.mock.calls[0][0];
-    expect(message).toContain(process.env.CLIENT_URL);
+    expect(message).toContain(`${process.env.CLIENT_URL}/reset-password/`);
     expect(message).not.toContain('evil.example.com');
   });
 
