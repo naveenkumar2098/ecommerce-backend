@@ -8,6 +8,7 @@ const logFormat = printf(({ level, message, timestamp, stack }) => {
 
 const logger = createLogger({
     level: 'info',
+    silent: process.env.NODE_ENV === 'test',
     format: combine(
         colorize(),
         timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
