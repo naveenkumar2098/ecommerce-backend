@@ -18,7 +18,7 @@ exports.getAllUsers = async (req, res) => {
     res.status(200).json(users);
   } catch (error) {
     logger.error(`Error encountered during fetching all users`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -56,7 +56,7 @@ exports.updateUser = async (req, res) => {
       return res.status(400).json({ message: 'Email already in use' });
     }
     logger.error(`Error encountered during updating user details`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -81,7 +81,7 @@ exports.deleteUser = async (req, res) => {
     res.status(200).json({ message: 'User deleted' });
   } catch (error) {
     logger.error(`Error encountered during delete user process`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -118,6 +118,6 @@ exports.updateOwnProfile = async (req, res) => {
       return res.status(400).json({ message: 'Email already in use' });
     }
     logger.error(`Error encountered during updating own profile`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };

@@ -37,7 +37,7 @@ exports.createIssue = async (req, res) => {
       res.status(201).json(issue);
     } catch (error) {
       logger.error(`Error encountered during issue creation`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -62,7 +62,7 @@ exports.getAllIssues = async (req, res) => {
       res.status(200).json(issues);
     } catch (error) {
       logger.error(`Error encountered during fetching issues list`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -92,7 +92,7 @@ exports.getIssue = async (req, res) => {
       res.status(200).json(issue);
     } catch (error) {
       logger.error(`Error encountered while fetching issue details`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -124,7 +124,7 @@ exports.updateIssue = async (req, res) => {
       res.status(200).json(issue);
     } catch (error) {
       logger.error(`Error encountered while updating issue`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -149,6 +149,6 @@ exports.deleteIssue = async (req, res) => {
       res.status(200).json({ message: 'Issue deleted successfully' });
     } catch (error) {
       logger.error(`Error encountered while deleting issue`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
   }
 };

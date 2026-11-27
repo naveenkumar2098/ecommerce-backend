@@ -29,7 +29,7 @@ exports.createProduct = async (req, res) => {
         res.status(201).json(product);
     } catch (error) {
         logger.error(`Error encountered during product creation`, { error });
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -49,7 +49,7 @@ exports.getAllProducts = async (req, res) => {
         res.status(200).json(products);
     } catch (error) {
         logger.error(`Error encountered during fetching products list`, { error });
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -73,7 +73,7 @@ exports.getProduct = async (req, res) => {
         res.status(200).json(product);
     } catch (error) {
         logger.error(`Error encountered while fetching product details`, { error });
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -111,7 +111,7 @@ exports.updateProduct = async (req, res) => {
         res.status(200).json(product);
     } catch (error) {
         logger.error(`Error encountered while updating product`, { error });
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -142,7 +142,7 @@ exports.deleteProduct = async (req, res) => {
         res.status(200).json({ message: 'Product deleted successfully' });
     } catch (error) {
         logger.error(`Error encountered while deleting product`, { error });
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -174,6 +174,6 @@ exports.toggleProductStatus = async (req, res) => {
         res.status(200).json(product);
     } catch (error) {
         logger.error(`Error encountered while toggling product status`, { error });
-        res.status(500).json({ message: 'Server error', error });
+        res.status(500).json({ message: 'Server error' });
     }
 };

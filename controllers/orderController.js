@@ -83,7 +83,7 @@ exports.createOrder = async (req, res) => {
         logger.error(`Failed to roll back stock reservation`, { error: rollbackError });
       }
       logger.error(`Error encountered during order creation`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -108,7 +108,7 @@ exports.getAllOrdersForUser = async (req, res) => {
       res.status(200).json(orders);
     } catch (error) {
       logger.error(`Error encountered during fetching orders list`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -138,7 +138,7 @@ exports.getOrder = async (req, res) => {
       res.status(200).json(order);
     } catch (error) {
       logger.error(`Error encountered while fetching order details`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -195,7 +195,7 @@ exports.updateOrder = async (req, res) => {
       res.status(200).json(order);
     } catch (error) {
       logger.error(`Error encountered while updating order`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
     }
 };
 
@@ -220,6 +220,6 @@ exports.deleteOrder = async (req, res) => {
       res.status(200).json({ message: 'Order deleted successfully' });
     } catch (error) {
       logger.error(`Error encountered while deleting order`, { error });
-      res.status(500).json({ message: 'Server error', error });
+      res.status(500).json({ message: 'Server error' });
     }
 };

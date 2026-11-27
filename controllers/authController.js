@@ -44,7 +44,7 @@ exports.register = async (req, res) => {
     res.status(201).json({ token });
   } catch (error) {
     logger.error(`Error encountered during user registration`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -88,7 +88,7 @@ exports.login = async (req, res) => {
     res.status(200).json({ token });
   } catch (error) {
     logger.error(`Error encountered during user login`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -145,7 +145,7 @@ exports.forgotPassword = async (req, res) => {
     }
   } catch (error) {
     logger.error(`Error encountered during forgot password process`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -196,7 +196,7 @@ exports.resetPassword = async (req, res) => {
     res.status(200).json({ token });
   } catch (error) {
     logger.error(`Error encountered during password reset`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -215,7 +215,7 @@ exports.getCurrentUser = async (req, res) => {
     res.status(200).json(user);
   } catch (error) {
     logger.error(`Error encountered during fetching current logged in user`, { error });
-    res.status(500).json({ message: 'Server error', error });
+    res.status(500).json({ message: 'Server error' });
   }
 };
 

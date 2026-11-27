@@ -3,7 +3,7 @@ const morgan = require('morgan');
 const logger = require('./utils/logger');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '100kb' }));
 
 // All HTTP request logging middleware
 app.use(
@@ -30,8 +30,18 @@ app.use('/api/issues', issueRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
+    if (err.type === 'entity.parse.failed') {
+        return res.status(400).json({ message: 'Malformed JSON body' });
+    }
+    if (err.type === 'entity.too.large') {
+        return res.status(413).json({ message: 'Payload too large' });
+    }
     logger.error(err.stack);
-    res.status(500).json({ message: 'Internal Server Error', error: err.message })
+    const body = { message: 'Internal Server Error' };
+    if (process.env.NODE_ENV === 'development') {
+        body.detail = err.message;
+    }
+    res.status(err.status || 500).json(body);
 });
 
 module.exports = app;
